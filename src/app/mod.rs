@@ -5,16 +5,20 @@ use eframe::{
     App, CreationContext, Frame
 };
 
-use crate::{file::file_system::play_data, ui::render_elements::render_play_button};
+use crate::{
+    file::file_system::play_data, 
+    ui::render_elements::{render_file_options, render_play_button}
+};
 
-#[derive(Default)]
-pub struct AudioPlayer {}
+pub struct AudioPlayer {
+    pub audio_path: String
+}
 
 impl App for AudioPlayer {
     fn update(
         &mut self, 
         ctx: &Context,
-        frame: &mut Frame
+        _frame: &mut Frame
     ) {
         CentralPanel::default().show(ctx, |ui| {
             ui.heading("Welcome to Audio Player!");
@@ -22,8 +26,9 @@ impl App for AudioPlayer {
             // TODO: move logic out
             let play_button = render_play_button(ui);
             if play_button.clicked() {
-                play_data("public/beat_1.mp3");
+                play_data(&self.audio_path);
             }
+            render_file_options(ui, self);
         });
     }
 }
@@ -34,9 +39,10 @@ impl AudioPlayer {
     }
 }
 
-// TODO: add custom Default
-// impl Default for AudioPlayer {
-//     fn default() -> Self {
-//         AudioPlayer {}
-//     }
-// }
+impl Default for AudioPlayer {
+    fn default() -> Self {
+        AudioPlayer {
+            audio_path: "".to_owned()
+        }
+    }
+}

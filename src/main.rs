@@ -9,10 +9,10 @@ use eframe::{
     NativeOptions,
     run_native
 };
-use file::file_system::play_data;
+use file::file_system::get_files_from_dir;
 
 fn main() {
-    // play_data("public/beat_1.mp3");
+    get_files_from_dir("public");
 
     let options = NativeOptions {
         viewport: ViewportBuilder::default().with_inner_size([
