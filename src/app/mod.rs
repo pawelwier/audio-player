@@ -26,7 +26,7 @@ impl App for AudioPlayer {
             // TODO: move logic out
             let play_button = render_play_button(ui);
             if play_button.clicked() {
-                play_data(&self.audio_path);
+                play_data(self.audio_path.to_owned());
             }
             render_file_options(ui, self);
         });

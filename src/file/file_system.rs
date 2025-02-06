@@ -1,8 +1,7 @@
 use std::{
-    fs::{read_dir, DirEntry, File},
-    io::BufReader
+    fs::{read_dir, DirEntry, File}, io::BufReader, thread, time::Duration
 };
-use rodio::{Decoder, OutputStream, source::Source};
+use rodio::{source::{SineWave, Source}, Decoder, OutputStream, Sink};
 
 fn throw_io_error(message: &str) -> std::io::Error {
     std::io::Error::new(std::io::ErrorKind::Other, message)
@@ -31,13 +30,16 @@ fn read_file(path: &str) -> Result<BufReader<File>, std::io::Error> {
     }
 }
 
-pub fn play_data(path: &str) -> () {
-    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-    let data_result: Result<BufReader<File>, std::io::Error> = read_file(path);
+pub fn play_data(path: String) -> () {
+    thread::spawn(move || {
+        let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+        let sink = Sink::try_new(&stream_handle).unwrap();
+        let data_result: Result<BufReader<File>, std::io::Error> = read_file(&path);
 
-    if let Ok(file) = data_result {
-        let source = Decoder::new(file).unwrap();
-        let _ = stream_handle.play_raw(source.convert_samples());
-        std::thread::sleep(std::time::Duration::from_secs(5));
-    }
+        if let Ok(file) = data_result {
+            let source = Decoder::new(file).unwrap();
+            sink.append(source);
+            sink.sleep_until_end();
+        }
+    });
 }
