@@ -7,9 +7,11 @@ fn render_text(
     RichText::new(text).size(size)
 }
 
-pub fn render_small_text(text: impl Into<String>) -> RichText {
-    render_text(text, 15.0)
+/*
+    pub fn render_small_text(text: impl Into<String>) -> RichText {
+        render_text(text, 15.0)
 }
+*/
 
 pub fn render_big_text(text: impl Into<String>) -> RichText {
     render_text(text, 30.0)

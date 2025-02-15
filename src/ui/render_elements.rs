@@ -6,14 +6,22 @@ use crate::file::file_system::get_files_from_dir;
 use super::layouts::vertical_align; 
 use super::text_utils::render_big_text;
 
-pub fn render_play_button(ui: &mut Ui) -> Response {
-    let text = render_big_text("Play!");
+fn render_button_reg(ui: &mut Ui, text: &str) -> Response {
+    let btn_text = render_big_text(text);
     ui
         .add_sized(
-            [80., 30.],
-            Button::new(text)
+            [100., 30.],
+            Button::new(btn_text)
         )
         .on_hover_cursor(CursorIcon::PointingHand)
+}
+
+pub fn render_stream_buttons(ui: &mut Ui) -> (Response, Response, Response) {
+    (
+        render_button_reg(ui, "Play!"),
+        render_button_reg(ui, "Pause"),
+        render_button_reg(ui, "Stop"),
+    )
 }
 
 // TODO: get path

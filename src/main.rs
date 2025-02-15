@@ -3,10 +3,10 @@ mod file;
 mod ui;
 mod app;
 
-use app::AudioPlayer;
 use eframe::egui::ViewportBuilder; 
 use eframe::{NativeOptions,run_native};
 use rodio::{OutputStream, Sink};
+use app::AudioPlayer;
 
 fn main() {
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
