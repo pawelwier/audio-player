@@ -1,7 +1,10 @@
 use eframe::egui::{Button, CursorIcon, Response, Ui};
-use crate::{app::AudioPlayer, file::file_system::get_files_from_dir};
 
-use super::{layouts::vertical_align, text_utils::render_big_text};
+use crate::app::AudioPlayer;
+use crate::file::file_system::get_files_from_dir;
+
+use super::layouts::vertical_align; 
+use super::text_utils::render_big_text;
 
 pub fn render_play_button(ui: &mut Ui) -> Response {
     let text = render_big_text("Play!");

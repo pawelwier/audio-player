@@ -4,15 +4,13 @@ mod ui;
 mod app;
 
 use app::AudioPlayer;
-use eframe::{
-    egui::ViewportBuilder, 
-    NativeOptions,
-    run_native
-};
-use file::file_system::get_files_from_dir;
+use eframe::egui::ViewportBuilder; 
+use eframe::{NativeOptions,run_native};
+use rodio::{OutputStream, Sink};
 
 fn main() {
-    get_files_from_dir("public");
+    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+    let sink = Sink::try_new(&stream_handle).unwrap();
 
     let options = NativeOptions {
         viewport: ViewportBuilder::default().with_inner_size([
@@ -26,7 +24,7 @@ fn main() {
         "Audio Player",
         options,
         Box::new(
-            |cc| Ok(Box::new(AudioPlayer::new(cc)))
+            |cc| Ok(Box::new(AudioPlayer::new(cc, sink)))
         )
     );
 }

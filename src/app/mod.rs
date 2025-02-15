@@ -1,16 +1,23 @@
-use eframe::{
-    egui::{
-        CentralPanel, Context
-    }, 
-    App, CreationContext, Frame
-};
+use std::thread;
+use std::fs::File; 
+use std::io::BufReader;
+use std::sync::Arc;
+use std::sync::Mutex;
 
-use crate::{
-    file::file_system::play_data, 
-    ui::render_elements::{render_file_options, render_play_button}
-};
+use eframe::egui::{CentralPanel, Context};
+use eframe::{App, CreationContext, Frame};
+
+use rodio::{Decoder, Sink};
+
+use crate::file::file_system::read_file; 
+use crate::ui::render_elements::{render_file_options, render_play_button};
+
+struct AudioStream {
+    sink: Sink
+}
 
 pub struct AudioPlayer {
+    stream: Arc<Mutex<AudioStream>>,
     pub audio_path: String
 }
 
@@ -26,7 +33,7 @@ impl App for AudioPlayer {
             // TODO: move logic out
             let play_button = render_play_button(ui);
             if play_button.clicked() {
-                play_data(self.audio_path.to_owned());
+                self.play_data(self.audio_path.to_owned());
             }
             render_file_options(ui, self);
         });
@@ -34,15 +41,26 @@ impl App for AudioPlayer {
 }
 
 impl AudioPlayer {
-    pub fn new(cc: &CreationContext<'_>) -> Self {
-        Self::default()
-    }
-}
-
-impl Default for AudioPlayer {
-    fn default() -> Self {
-        AudioPlayer {
+    pub fn new(cc: &CreationContext<'_>, sink: Sink) -> Self {
+        AudioPlayer { 
+            stream: Arc::new(Mutex::new(AudioStream { sink })),
             audio_path: "".to_owned()
+        }
+    }
+
+    pub fn play_data(&mut self, path: String) -> () {
+        let data_result: Result<BufReader<File>, std::io::Error> = read_file(&path);
+
+        if let Ok(file) = data_result {
+            let source = Decoder::new(file).unwrap();
+
+            let local_self = self.stream.clone();
+
+            thread::spawn(move || {
+                let sink = &local_self.lock().unwrap().sink;
+                sink.append(source);
+                sink.sleep_until_end();
+            });
         }
     }
 }
