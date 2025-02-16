@@ -1,6 +1,6 @@
 use std::fs::DirEntry;
 
-use eframe::egui::{Button, CursorIcon, Response, Ui};
+use eframe::egui::{Button, CursorIcon, Response, Ui, Vec2};
 
 use crate::app::AudioPlayer;
 use crate::audio::AudioState;
@@ -10,12 +10,15 @@ use super::layouts::vertical_align;
 use super::text_utils::render_big_text;
 
 fn render_button_reg(ui: &mut Ui, text: &str, disabled_states: Vec<AudioState>, state: &AudioState) -> Response {
-    let selected: bool = disabled_states.contains(&state);
+    let disabled: bool = disabled_states.contains(&state);
     let btn_text = render_big_text(text);
     ui
-        .add_sized(
-            [100., 30.],
-            Button::new(btn_text).selected(selected)
+        .add_enabled(
+            !disabled,
+            Button::new(btn_text)
+                .selected(disabled)
+                .min_size(Vec2::from([100., 30.])
+            )
         )
         .on_hover_cursor(CursorIcon::PointingHand)
 }
@@ -39,7 +42,6 @@ fn render_file_option(ui: &mut Ui, app: &mut AudioPlayer, file: DirEntry) -> Res
     ui.selectable_value(&mut app.audio_path, file_path, file_name)
 }
 
-// TODO: filter .mp3 files
 pub fn render_file_options(ui: &mut Ui, app: &mut AudioPlayer) -> () {
     ui.with_layout(vertical_align(), |ui| {
         if let Ok(files) = get_files_from_dir(&app.base_path) {

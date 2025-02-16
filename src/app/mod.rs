@@ -38,7 +38,6 @@ impl App for AudioPlayer {
             let (
                 play_button, pause_button, stop_button
             ) = render_stream_buttons(ui, &self.audio_state);
-            // TODO: make btns active only when not selected
             if play_button.clicked() {
                 self.play_data(self.audio_path.to_owned());
             }
@@ -75,9 +74,7 @@ impl AudioPlayer {
 
     pub fn set_audio_state_on_option_change(&mut self, option: Response) -> () {
         let option_response = option.interact(Sense::click());
-        if option_response.clicked() {
-            // TODO: make 'stop' only initially; 
-            // when audio playing, do not stop on select, stop and play on select -> play
+        if self.audio_state == AudioState::NotSelected && option_response.clicked() {
             self.stop_data();
         }
     }
