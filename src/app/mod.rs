@@ -1,21 +1,18 @@
 use std::thread;
-use std::fs::File; 
-use std::io::BufReader;
-use std::sync::Arc;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use eframe::egui::Response;
 use eframe::egui::Sense;
 use eframe::egui::{CentralPanel, Context};
 use eframe::{App, CreationContext, Frame};
 
-use rodio::{Decoder, Sink};
+use rodio::Sink;
 
 use crate::audio::AudioState;
-use crate::file::file_system::read_file; 
+use crate::file::file_system::read_audio_file; 
 use crate::ui::render_elements::{render_file_options, render_stream_buttons};
 
-struct AudioStream {
+pub struct AudioStream {
     sink: Sink
 }
 
@@ -86,17 +83,17 @@ impl AudioPlayer {
     }
 
     pub fn play_data(&mut self, path: String) -> () {
-        let data_result: Result<BufReader<File>, std::io::Error> = read_file(&path);
-
-        if let Ok(file) = data_result {
-            let source = Decoder::new(file).unwrap();
+        if let Ok(source) = read_audio_file(path) {
             let local_stream = self.get_local_stream();
-
+    
             thread::spawn(move || {
                 let _ = &local_stream.lock().unwrap().sink.append(source);
             });
 
             self.set_audio_state(AudioState::Play);
+        } else {
+            // TODO: not accessible, but send message 
+            println!("Invalid file format");
         }
     }
 

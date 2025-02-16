@@ -21,11 +21,10 @@ fn render_button_reg(ui: &mut Ui, text: &str, disabled_states: Vec<AudioState>, 
 }
 
 pub fn render_stream_buttons(ui: &mut Ui, state: &AudioState) -> (Response, Response, Response) {
-    println!("{:?}", &state);
     (
         // TODO: refactor
         render_button_reg(ui, "Play!", vec![AudioState::NotSelected, AudioState::Play], &state),
-        render_button_reg(ui, "Pause", vec![AudioState::NotSelected, AudioState::Pause], &state),
+        render_button_reg(ui, "Pause", vec![AudioState::NotSelected, AudioState::Stop, AudioState::Pause], &state),
         render_button_reg(ui, "Stop", vec![AudioState::NotSelected, AudioState::Stop], &state),
     )
 }
