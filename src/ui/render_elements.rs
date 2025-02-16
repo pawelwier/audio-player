@@ -4,10 +4,10 @@ use eframe::egui::{Button, CursorIcon, Response, Ui, Vec2};
 
 use crate::app::AudioPlayer;
 use crate::audio::AudioState;
-use crate::file::file_system::get_files_from_dir;
+use crate::file::file_system::{get_file_duration, get_files_from_dir};
 
 use super::layouts::vertical_align; 
-use super::text_utils::render_big_text;
+use super::utils::{format_time_secs, render_big_text};
 
 fn render_button_reg(ui: &mut Ui, text: &str, disabled_states: Vec<AudioState>, state: &AudioState) -> Response {
     let disabled: bool = disabled_states.contains(&state);
@@ -36,10 +36,23 @@ fn get_file_path(file_name: &str, base_path: &str) -> String {
     [base_path, &file_name].join("/")
 }
 
+fn get_file_display_info(file_name: String, file_path: &String) -> String {
+    let duration_option = get_file_duration(file_path);
+
+    match duration_option {
+        Some(duration) => {
+            let duration_formatted = format_time_secs(duration.as_secs());
+            file_name + " (" + &duration_formatted + ")"
+        },
+        None => "Error reading file".to_owned()
+    }
+}
+
 fn render_file_option(ui: &mut Ui, app: &mut AudioPlayer, file: DirEntry) -> Response {
     let file_name = file.file_name().to_str().unwrap().to_owned();
     let file_path = get_file_path(&file_name, &app.base_path);
-    ui.selectable_value(&mut app.audio_path, file_path, file_name)
+    let display_value = get_file_display_info(file_name, &file_path);
+    ui.selectable_value(&mut app.audio_path, file_path, display_value)
 }
 
 pub fn render_file_options(ui: &mut Ui, app: &mut AudioPlayer) -> () {

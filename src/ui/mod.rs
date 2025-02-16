@@ -1,3 +1,3 @@
 pub mod render_elements;
-pub mod text_utils;
+pub mod utils;
 pub mod layouts;

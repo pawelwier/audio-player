@@ -47,7 +47,7 @@ impl App for AudioPlayer {
             if stop_button.clicked() {
                 self.stop_data();
             }
-            
+
             render_file_options(ui, self);
         });
     }
@@ -80,7 +80,7 @@ impl AudioPlayer {
     }
 
     pub fn play_data(&mut self, path: String) -> () {
-        if let Ok(source) = read_audio_file(path) {
+        if let Ok(source) = read_audio_file(&path) {
             let local_stream = self.get_local_stream();
     
             thread::spawn(move || {

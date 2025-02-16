@@ -1,7 +1,8 @@
 use std::fs::{read_dir, DirEntry, File};
 use std::io::BufReader;
+use std::time::Duration;
 
-use rodio::Decoder;
+use rodio::{Decoder, Source};
 
 fn throw_io_error(message: &str) -> std::io::Error {
     std::io::Error::new(std::io::ErrorKind::Other, message)
@@ -42,7 +43,15 @@ pub fn read_file(path: &str) -> Result<BufReader<File>, std::io::Error> {
     }
 }
 
-pub fn read_audio_file(path: String) -> Result<Decoder<BufReader<File>>, std::io::Error> {
+pub fn get_file_duration(path: &String) -> Option<Duration> {
+    if let Ok(source) = read_audio_file(path) {
+        source.total_duration()
+    } else {
+        Some(Duration::ZERO)
+    }
+}
+
+pub fn read_audio_file(path: &String) -> Result<Decoder<BufReader<File>>, std::io::Error> {
     let data_result: Result<BufReader<File>, std::io::Error> = read_file(&path);
     
     match data_result {
