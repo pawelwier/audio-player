@@ -1,6 +1,7 @@
 use std::fs::DirEntry;
+use std::time::Duration;
 
-use eframe::egui::{Button, CursorIcon, Response, Ui, Vec2};
+use eframe::egui::{Button, CursorIcon, ProgressBar, Response, Ui, Vec2};
 
 use crate::app::AudioPlayer;
 use crate::audio::AudioState;
@@ -8,6 +9,8 @@ use crate::file::file_system::{get_file_duration, get_files_from_dir};
 
 use super::layouts::vertical_align; 
 use super::utils::{format_time_secs, render_big_text};
+
+// TODO: break into separate files
 
 fn render_button_reg(ui: &mut Ui, text: &str, disabled_states: Vec<AudioState>, state: &AudioState) -> Response {
     let disabled: bool = disabled_states.contains(&state);
@@ -64,4 +67,23 @@ pub fn render_file_options(ui: &mut Ui, app: &mut AudioPlayer) -> () {
             }
         }
     });
+}
+
+pub fn render_duration_progress_bar(ui: &mut Ui, app: &mut AudioPlayer) -> Response {
+    // TODO: split logic
+    let duration_option: Option<Duration> = get_file_duration(&app.audio_path);
+    let stream = app.stream.lock().unwrap();
+    let state: &AudioState = &stream.audio_state;
+    let duration_full = duration_option.unwrap().as_millis() as f32;
+
+    match state {
+        &AudioState::NotSelected | &AudioState::Stop => {
+            app.file_pos_milis = 0;
+        },
+        AudioState::Play | AudioState::Pause => {
+            app.file_pos_milis = stream.sink.get_pos().as_millis() as u64;
+        }
+    }
+    
+    ui.add(ProgressBar::new(app.file_pos_milis as f32 / duration_full))
 }

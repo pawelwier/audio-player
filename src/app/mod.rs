@@ -10,18 +10,19 @@ use rodio::Sink;
 
 use crate::audio::AudioState;
 use crate::file::file_system::read_audio_file; 
-use crate::ui::render_elements::{render_file_options, render_stream_buttons};
+use crate::ui::render_elements::{render_duration_progress_bar, render_file_options, render_stream_buttons};
 
 pub struct AudioStream {
-    sink: Sink
+    pub sink: Sink,
+    pub audio_state: AudioState
 }
 
 pub struct AudioPlayer {
-    stream: Arc<Mutex<AudioStream>>,
+    pub stream: Arc<Mutex<AudioStream>>,
     // TODO: join?
     pub base_path: String,
     pub audio_path: String,
-    pub audio_state: AudioState
+    pub file_pos_milis: u64
 }
 
 impl App for AudioPlayer {
@@ -31,13 +32,14 @@ impl App for AudioPlayer {
         _frame: &mut Frame
     ) {
         CentralPanel::default().show(ctx, |ui| {
+            ctx.request_repaint();
             ui.heading("Welcome to Audio Player!");
             ui.add_space(10.);
 
             // TODO: refactor and move logic out
             let (
                 play_button, pause_button, stop_button
-            ) = render_stream_buttons(ui, &self.audio_state);
+            ) = render_stream_buttons(ui, &self.get_local_stream().lock().unwrap().audio_state);
             if play_button.clicked() {
                 self.play_data(self.audio_path.to_owned());
             }
@@ -47,8 +49,12 @@ impl App for AudioPlayer {
             if stop_button.clicked() {
                 self.stop_data();
             }
+            ui.add_space(10.);
 
             render_file_options(ui, self);
+            ui.add_space(10.);
+            
+            render_duration_progress_bar(ui, self);
         });
     }
 }
@@ -56,25 +62,28 @@ impl App for AudioPlayer {
 impl AudioPlayer {
     pub fn new(_cc: &CreationContext<'_>, sink: Sink) -> Self {
         AudioPlayer { 
-            stream: Arc::new(Mutex::new(AudioStream { sink })),
+            stream: Arc::new(Mutex::new(AudioStream { 
+                sink,
+                audio_state: AudioState::NotSelected
+            })),
             audio_path: "".to_owned(),
             // TODO: get path
             base_path: "public".to_owned(),
-            audio_state: AudioState::NotSelected
+            file_pos_milis: 0
         }
     }
 
-    fn get_local_stream(&mut self) -> Arc<Mutex<AudioStream>> {
+    pub fn get_local_stream(&mut self) -> Arc<Mutex<AudioStream>> {
         self.stream.clone()
     }
 
     pub fn set_audio_state(&mut self, state: AudioState) -> () {
-        self.audio_state = state;
+        self.stream.lock().unwrap().audio_state = state;
     }
 
     pub fn set_audio_state_on_option_change(&mut self, option: Response) -> () {
         let option_response = option.interact(Sense::click());
-        if self.audio_state == AudioState::NotSelected && option_response.clicked() {
+        if self.stream.lock().unwrap().audio_state == AudioState::NotSelected && option_response.clicked() {
             self.stop_data();
         }
     }
@@ -84,7 +93,8 @@ impl AudioPlayer {
             let local_stream = self.get_local_stream();
     
             thread::spawn(move || {
-                let _ = &local_stream.lock().unwrap().sink.append(source);
+                let sink = &local_stream.lock().unwrap().sink;
+                let _ = sink.append(source);
             });
 
             self.set_audio_state(AudioState::Play);
